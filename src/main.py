@@ -19,6 +19,7 @@ left_18 = Motor(Ports.PORT18, GearSetting.RATIO_6_1,True)
 right_12 = Motor(Ports.PORT12, GearSetting.RATIO_6_1,False)
 right_11 = Motor(Ports.PORT11, GearSetting.RATIO_6_1,False)
 right_13 = Motor(Ports.PORT13, GearSetting.RATIO_6_1,False)
+conv = Motor(Ports.PORT17, GearSetting.RATIO_18_1,False)
 lock = DigitalOut(brain.three_wire_port.b)
 grab = DigitalOut(brain.three_wire_port.a)
 motors = {"left_16":left_16,"left_19":left_19,"left_18":left_18,"right_12":right_12,"right_11":right_11,"right_13":right_13}
@@ -39,6 +40,10 @@ def one_stick():
     
 def driver():
     Thread(one_stick)
+    control.buttonL1.pressed(lambda: conv.spin(FORWARD,100,PERCENT))
+    control.buttonL2.pressed(lambda: conv.spin(REVERSE,100,PERCENT))
+    control.buttonL1.released(conv.stop)
+    control.buttonL2.released(conv.stop)
     control.buttonA.pressed(lambda: grab.set(not grab.value()))
     control.buttonB.pressed(lambda: lock.set(not lock.value()))
 
