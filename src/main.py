@@ -13,12 +13,13 @@ from vex import *
 # Brain should be defined by default
 brain=Brain()
 
-left_16 = Motor(Ports.PORT16, GearSetting.RATIO_6_1,True)
-left_19 = Motor(Ports.PORT19, GearSetting.RATIO_6_1,True)
-left_18 = Motor(Ports.PORT18, GearSetting.RATIO_6_1,True)
-right_12 = Motor(Ports.PORT12, GearSetting.RATIO_6_1,False)
-right_11 = Motor(Ports.PORT11, GearSetting.RATIO_6_1,False)
-right_13 = Motor(Ports.PORT13, GearSetting.RATIO_6_1,False)
+left_16 = Motor(Ports.PORT16, GearSetting.RATIO_6_1,False)
+left_19 = Motor(Ports.PORT19, GearSetting.RATIO_6_1,False)
+left_18 = Motor(Ports.PORT18, GearSetting.RATIO_6_1,False)
+right_12 = Motor(Ports.PORT12, GearSetting.RATIO_6_1,True)
+right_11 = Motor(Ports.PORT11, GearSetting.RATIO_6_1,True)
+right_13 = Motor(Ports.PORT13, GearSetting.RATIO_6_1,True)
+vision = Vision(Ports.PORT5)
 conv = Motor(Ports.PORT17, GearSetting.RATIO_18_1,False)
 lock = DigitalOut(brain.three_wire_port.b)
 grab = DigitalOut(brain.three_wire_port.a)
@@ -32,7 +33,7 @@ code = Controller()
 def one_stick():
     while True:
         throttle = control.axis3.position()
-        turn = control.axis4.position()
+        turn = control.axis1.position()
         left = throttle-turn
         right = throttle+turn
         left_group.spin(FORWARD,left,PERCENT)
