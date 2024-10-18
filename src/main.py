@@ -29,13 +29,16 @@ left_group = MotorGroup(left_18,left_16,left_19)
 right_group = MotorGroup(right_11,right_12,right_13)
 
 control = Controller(PRIMARY)
-code = Controller()
 def one_stick():
     while True:
         throttle = control.axis3.position()
         turn = control.axis1.position()
-        left = throttle-turn
-        right = throttle+turn
+        if (pow(throttle,2) + pow(turn,2) < 1):
+            left_group.stop(HOLD)
+            right_group.stop(HOLD)
+            continue
+        left = throttle+turn
+        right = throttle-turn
         left_group.spin(FORWARD,left,PERCENT)
         right_group.spin(FORWARD,right,PERCENT)
     
