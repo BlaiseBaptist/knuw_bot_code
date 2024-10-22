@@ -32,10 +32,11 @@ control = Controller(PRIMARY)
 def one_stick():
     while True:
         throttle = control.axis3.position()
-        turn = control.axis1.position()
-        if (pow(throttle,2) + pow(turn,2) < 1):
-            left_group.stop(HOLD)
-            right_group.stop(HOLD)
+        turn = control.axis4.position()
+        conv.spin(REVERSE,control.axis2.position(),PERCENT)
+        if (abs(throttle) + abs(turn) < 1):
+            left_group.stop(BRAKE)
+            right_group.stop(BRAKE)
             continue
         left = throttle+turn
         right = throttle-turn
