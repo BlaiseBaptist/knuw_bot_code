@@ -48,8 +48,8 @@ def driver():
     control.buttonL2.pressed(lambda: conv.spin(REVERSE,100,PERCENT))
     control.buttonL1.released(conv.stop)
     control.buttonL2.released(conv.stop)
-    control.buttonA.pressed(lambda: grab.set(not grab.value()))
-    control.buttonB.pressed(lambda: lock.set(not lock.value()))
+    control.buttonR1.pressed(lambda: grab.set(not grab.value()))
+    control.buttonR2.pressed(lambda: lock.set(not lock.value()))
 
 def auton():
     pass
