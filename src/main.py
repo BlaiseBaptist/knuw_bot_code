@@ -54,8 +54,8 @@ def driver():
     control.buttonL2.released(conv.stop)
     control.buttonA.pressed(lambda: grab.set(not grab.value()))
     control.buttonB.pressed(lambda: lock.set(not lock.value()))
-    control.buttonL1.pressed(lambda: wall_steaks.spin(FORWARD, 100, PERCENT))
-    control.buttonL2.pressed(lambda: wall_steaks.spin(REVERSE, 100, PERCENT))
+    control.buttonR1.pressed(lambda: wall_steaks.spin(FORWARD, 100, PERCENT))
+    control.buttonR2.pressed(lambda: wall_steaks.spin(REVERSE, 100, PERCENT))
     wall_steaks.set_stopping(HOLD)
 
 
