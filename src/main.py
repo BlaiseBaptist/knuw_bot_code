@@ -23,14 +23,13 @@ conv = Motor(Ports.PORT17, GearSetting.RATIO_18_1, False)
 wall_steaks = Motor(Ports.PORT10, GearSetting.RATIO_36_1, False)
 lock = DigitalOut(brain.three_wire_port.b)
 grab = DigitalOut(brain.three_wire_port.a)
-motors = {"left_16": left_16, "left_19": left_19, "left_18": left_18,
+doink = DigitalOut(brain.three_wire_port.c)
+drive_motors = {"left_16": left_16, "left_19": left_19, "left_18": left_18,
           "right_12": right_12, "right_11": right_11, "right_13": right_13}
-
 left_group = MotorGroup(left_18, left_16, left_19)
 right_group = MotorGroup(right_11, right_12, right_13)
-
 control = Controller(PRIMARY)
-
+sensor = Inertial(Ports.PORT8)
 
 def one_stick():
     while True:
@@ -44,6 +43,10 @@ def one_stick():
         right = throttle-turn
         left_group.spin(FORWARD, left, PERCENT)
         right_group.spin(FORWARD, right, PERCENT)
+        for name,motor_obj in drive_motors.items():
+            print(name, motor_obj.velocity(RPM), end=" ")
+        print("\n")
+
 
 
 def driver():
@@ -64,5 +67,5 @@ def driver():
 def auton():
     pass
 
-
+sensor.calibrate()
 c = Competition(driver, auton)
