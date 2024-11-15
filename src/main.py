@@ -43,6 +43,33 @@ def change_team():
     BLUE_TEAM = not BLUE_TEAM
 
 
+def get_team():
+    brain.screen.set_pen_color(Color.BLUE)
+    brain.screen.set_fill_color(Color.BLUE)
+    brain.screen.draw_rectangle(0, 0, 240, 240)
+
+    brain.screen.set_pen_color(Color.RED)
+    brain.screen.set_fill_color(Color.RED)
+    brain.screen.draw_rectangle(240, 0, 240, 240)
+
+    brain.screen.set_pen_color(Color.BLACK)
+    brain.screen.set_font(FontType.MONO60)
+    middle_y = 90
+    middle_x = 60
+    brain.screen.print_at("Blue", x=middle_x, y=middle_y, opaque=False)
+    brain.screen.print_at("Team", x=middle_x, y=middle_y+60, opaque=False)
+    brain.screen.print_at("Red", x=middle_x+240+15, y=middle_y, opaque=False)
+    brain.screen.print_at("Team", x=middle_x+240, y=middle_y+60, opaque=False)
+    brain.screen.pressed(handle)
+
+
+def handle():
+    global BLUE_TEAM
+    if Competition.is_enabled():
+        return
+    BLUE_TEAM = brain.screen.x_position() <= 240
+
+
 def one_stick():
     while True:
         throttle = control.axis3.position()
@@ -63,17 +90,6 @@ def one_stick():
 def driver():
     Thread(one_stick)
     lady_brown.set_stopping(HOLD)
-    control.buttonL1.pressed(lambda: conv.spin(FORWARD, 100, PERCENT))
-    control.buttonL2.pressed(lambda: conv.spin(REVERSE, 100, PERCENT))
-    control.buttonL1.released(conv.stop)
-    control.buttonL2.released(conv.stop)
-    control.buttonA.pressed(lambda: grab.set(not grab.value()))
-    control.buttonB.pressed(lambda: lock.set(not lock.value()))
-    control.buttonX.pressed(lambda: da_hood.set(not da_hood.value()))
-    control.buttonR1.pressed(lambda: lady_brown.spin(FORWARD, 100, PERCENT))
-    control.buttonR2.pressed(lambda: lady_brown.spin(REVERSE, 100, PERCENT))
-    control.buttonR1.released(lady_brown.stop)
-    control.buttonR2.released(lady_brown.stop)
 
 
 def go_for(time, dir):
@@ -123,6 +139,7 @@ def heading_curve(x):
 
 
 def auto():
+    brain.screen.clear_screen()
     print("starting auto")
     if BLUE_TEAM:
         print("on blue")
@@ -144,11 +161,26 @@ def auto():
     print("done")
 
 
-sensor.calibrate()
-cal_time = 0
-control.buttonY.pressed(change_team)
-while sensor.is_calibrating():
-    cal_time += 0.01
-    wait(10, MSEC)
-print("\ncalibraited in ", cal_time, "s", sep="")
-c = Competition(driver, auto)
+def main():
+    get_team()
+    sensor.calibrate()
+    cal_time = 0
+    while sensor.is_calibrating():
+        cal_time += 0.01
+        wait(10, MSEC)
+    print("\ncalibraited in ", cal_time, "s", sep="")
+    _ = Competition(driver, auto)
+    control.buttonL1.pressed(lambda: conv.spin(FORWARD, 100, PERCENT))
+    control.buttonL2.pressed(lambda: conv.spin(REVERSE, 100, PERCENT))
+    control.buttonL1.released(conv.stop)
+    control.buttonL2.released(conv.stop)
+    control.buttonA.pressed(lambda: grab.set(not grab.value()))
+    control.buttonB.pressed(lambda: lock.set(not lock.value()))
+    control.buttonX.pressed(lambda: da_hood.set(not da_hood.value()))
+    control.buttonR1.pressed(lambda: lady_brown.spin(FORWARD, 100, PERCENT))
+    control.buttonR2.pressed(lambda: lady_brown.spin(REVERSE, 100, PERCENT))
+    control.buttonR1.released(lady_brown.stop)
+    control.buttonR2.released(lady_brown.stop)
+
+
+main()
