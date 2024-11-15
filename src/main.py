@@ -170,6 +170,7 @@ def auto():
     lady_brown.spin_for(REVERSE, first_spin * 3 - 20,
                         DEGREES, 50, PERCENT, wait=False)
     turn_to(45, 25)
+    go_for(150, FORWARD)
     conv.spin(FORWARD, 100, PERCENT)
     if detect == BLUE_TEAM:
         pass
