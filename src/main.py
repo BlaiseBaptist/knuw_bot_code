@@ -13,8 +13,10 @@ import math
 
 # Brain should be defined by default
 brain = Brain()
-
-BLUE_TEAM = True
+SIG_1 = Signature(1, -4823, -4161, -4492, 2559, 4147, 3352, 2.5, 0)
+SIG_2 = Signature(2, 5993, 8567, 7280, -2447, -917, -1682, 2.5, 0)
+vision_4 = Vision(Ports.PORT4, 50, SIG_1, SIG_2)
+LUE_TEAM = True
 AUTO_SPEED = 30
 left_16 = Motor(Ports.PORT16, GearSetting.RATIO_6_1, False)
 left_19 = Motor(Ports.PORT19, GearSetting.RATIO_6_1, False)
@@ -105,10 +107,6 @@ def full_go():
     right_group.spin(FORWARD, AUTO_SPEED, PERCENT)
 
 
-def nothing():
-    pass
-
-
 def turn_to(t_heading, speed):
     # cant turn 180
     c_heading = heading_curve(sensor.heading())
@@ -158,7 +156,21 @@ def auto():
                         DEGREES, 50, PERCENT, wait=False)
     turn_to(45, 25)
     conv.spin(FORWARD, 100, PERCENT)
+    if detect == BLUE_TEAM:
+        pass
     print("done")
+
+
+def detect():
+    while True:
+        objs = vision_4.take_snapshot(SIG_1)
+        if objs is not None:
+            # its blue
+            return True
+        objs = vision_4.take_snapshot(SIG_2)
+        if objs is not None:
+            # its red
+            return False
 
 
 def main():
