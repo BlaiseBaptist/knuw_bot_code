@@ -16,8 +16,6 @@ brain = Brain()
 SIG_1 = Signature(1, -4823, -4161, -4492, 2559, 4147, 3352, 2.5, 0)
 SIG_2 = Signature(2, 5993, 8567, 7280, -2447, -917, -1682, 2.5, 0)
 vision_4 = Vision(Ports.PORT4, 50, SIG_1, SIG_2)
-LUE_TEAM = True
-AUTO_SPEED = 30
 left_16 = Motor(Ports.PORT16, GearSetting.RATIO_6_1, False)
 left_19 = Motor(Ports.PORT19, GearSetting.RATIO_6_1, False)
 left_18 = Motor(Ports.PORT18, GearSetting.RATIO_6_1, False)
@@ -37,31 +35,37 @@ control = Controller(PRIMARY)
 sensor = Inertial(Ports.PORT8)
 
 
-def change_team():
-    global BLUE_TEAM
-    print(BLUE_TEAM)
-    control.screen.print(BLUE_TEAM)
-    BLUE_TEAM = not BLUE_TEAM
-
-
 def get_team():
+    draw()
+    brain.screen.pressed(handle)
+
+
+def draw():
+    brain.screen.clear_screen()
+    brain.screen.set_pen_width(5)
     brain.screen.set_pen_color(Color.BLUE)
+    if BLUE_TEAM:
+        brain.screen.set_pen_color(Color.BLACK)
     brain.screen.set_fill_color(Color.BLUE)
     brain.screen.draw_rectangle(0, 0, 240, 240)
 
     brain.screen.set_pen_color(Color.RED)
+    if not BLUE_TEAM:
+        brain.screen.set_pen_color(Color.BLACK)
     brain.screen.set_fill_color(Color.RED)
     brain.screen.draw_rectangle(240, 0, 240, 240)
-
     brain.screen.set_pen_color(Color.BLACK)
+
     brain.screen.set_font(FontType.MONO60)
     middle_y = 90
     middle_x = 60
-    brain.screen.print_at("Blue", x=middle_x, y=middle_y, opaque=False)
-    brain.screen.print_at("Team", x=middle_x, y=middle_y+60, opaque=False)
-    brain.screen.print_at("Red", x=middle_x+240+15, y=middle_y, opaque=False)
-    brain.screen.print_at("Team", x=middle_x+240, y=middle_y+60, opaque=False)
-    brain.screen.pressed(handle)
+    brain.screen.set_fill_color(Color.WHITE)
+    brain.screen.print_at("Red", x=middle_x+240+15,
+                          y=middle_y, opaque=(not BLUE_TEAM))
+    brain.screen.print_at("Team", x=middle_x+240,
+                          y=middle_y+60, opaque=(not BLUE_TEAM))
+    brain.screen.print_at("Blue", x=middle_x, y=middle_y, opaque=BLUE_TEAM)
+    brain.screen.print_at("Team", x=middle_x, y=middle_y+60, opaque=BLUE_TEAM)
 
 
 def handle():
@@ -69,6 +73,7 @@ def handle():
     if Competition.is_enabled():
         return
     BLUE_TEAM = brain.screen.x_position() <= 240
+    draw()
 
 
 def one_stick():
@@ -91,6 +96,10 @@ def one_stick():
 def driver():
     Thread(one_stick)
     lady_brown.set_stopping(HOLD)
+
+
+BLUE_TEAM = True
+AUTO_SPEED = 30
 
 
 def go_for(time, dir):
@@ -133,6 +142,13 @@ def heading_curve(x):
         return x
     else:
         return x-360
+
+
+def change_team():
+    global BLUE_TEAM
+    print(BLUE_TEAM)
+    control.screen.print(BLUE_TEAM)
+    BLUE_TEAM = not BLUE_TEAM
 
 
 def auto():
