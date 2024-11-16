@@ -87,10 +87,11 @@ def cal(x):
 
 
 def blaise_slope(x):
-    return 0 if x == 0 else x/abs(x) - 0.005*x
+    return 0 if x == 0 else x/abs(x) - 0.007*x
 
 
 def driver():
+    print("starting driver")
     while True:
         wait(.02, SECONDS)
         drive_code = blaise_drive
@@ -172,26 +173,27 @@ def auto():
     lady_brown.spin_for(FORWARD, first_spin * 3, DEGREES, 50, PERCENT)
     wait(50, TimeUnits.MSEC)
     go_for(200, FORWARD)
-    lady_brown.spin_for(REVERSE, (first_spin - 90) * 3,
-                        DEGREES, 50, PERCENT, wait=False)
+    lady_brown.spin_for(REVERSE, first_spin * 3,
+                        DEGREES, 100, PERCENT, wait=False)
     turn_to(30, 25)
     go_for(200, FORWARD)
     conv.spin(FORWARD, 100, PERCENT)
     go_for(200, FORWARD)
-    score = False
+    lady_brown.stop(COAST)
     if detect() == BLUE_TEAM:
         # we have the blue dounut at a reasonable place
-        score = True
         print("blue")
         conv.stop()
+        da_hood.set(True)
     else:
         # we missed the blue dounut and should not score
         # current plan ig is it just get rid of it
-        score = False
         print("red")
     turn_to(-25, 25)
     sensor.collision(auto_collect)
     go_for(1400, REVERSE)
+    grab.set(True)
+    conv.spin(FORWARD, 100, PERCENT)
     # past dealing with good donute and should just wait move on bc the conv will not stop
     print("done")
 
@@ -205,7 +207,7 @@ def auto_collect():
         print("collecting")
         left_group.stop()
         right_group.stop()
-        # grab.set(True)
+        grab.set(True)
         COLLECTED = True
 
 
@@ -235,7 +237,7 @@ def main():
     control.buttonB.pressed(lambda: doink.set(not doink.value()))
     control.buttonX.pressed(lambda: da_hood.set(not da_hood.value()))
     control.buttonR1.pressed(lambda: lady_brown.spin(FORWARD, 100, PERCENT))
-    control.buttonR2.pressed(lambda: lady_brown.spin(REVERSE, 100, PERCENT))
+    control.buttonR2.pressed(lambda: lady_brown.spin(REVERSE, 70, PERCENT))
     control.buttonR1.released(lady_brown.stop)
     control.buttonR2.released(lady_brown.stop)
     _ = Competition(driver, auto)
