@@ -14,7 +14,7 @@ import math
 # Brain should be defined by default
 brain = Brain()
 SIG_1 = Signature(1, -4823, -4161, -4492, 2559, 4147, 3352, 1.5, 0)
-SIG_2 = Signature(2, 5993, 8567, 7280, -2447, -917, -1682, 1, 0)
+SIG_2 = Signature(2, 5993, 8567, 7280, -2447, -917, -1682, 1.2, 0)
 vision_4 = Vision(Ports.PORT4, 50, SIG_1, SIG_2)
 left_16 = Motor(Ports.PORT16, GearSetting.RATIO_6_1, False)
 left_19 = Motor(Ports.PORT19, GearSetting.RATIO_6_1, False)
@@ -102,7 +102,7 @@ def driver():
         right_group.spin(FORWARD, Right, PERCENT)
 
 
-BLUE_TEAM = True
+BLUE_TEAM = False
 AUTO_SPEED = 30
 
 
@@ -173,28 +173,36 @@ def auto():
     lady_brown.spin_for(FORWARD, first_spin * 3, DEGREES, 50, PERCENT)
     wait(50, TimeUnits.MSEC)
     go_for(200, FORWARD)
-    lady_brown.spin_for(REVERSE, first_spin * 3,
-                        DEGREES, 100, PERCENT, wait=False)
-    turn_to(30, 25)
+    lady_brown.spin_to_position(0, DEGREES, 100, PERCENT, wait=False)
+    turn_to(35, 25)
     go_for(200, FORWARD)
     conv.spin(FORWARD, 100, PERCENT)
-    go_for(200, FORWARD)
+    go_for(300, FORWARD)
     lady_brown.stop(COAST)
+    wait(50, MSEC)
+    go_for(150, REVERSE)
     if detect() == BLUE_TEAM:
         # we have the blue dounut at a reasonable place
-        print("blue")
+        print("blue dounut")
         conv.stop()
         da_hood.set(True)
     else:
         # we missed the blue dounut and should not score
         # current plan ig is it just get rid of it
-        print("red")
-    turn_to(-25, 25)
-    sensor.collision(auto_collect)
+        print("red dounut")
+    go_for(300, REVERSE)
+    turn_to(-30, 25)
+    da_hood.set(False)
+    # sensor.collision(auto_collect)
     go_for(1400, REVERSE)
     grab.set(True)
     conv.spin(FORWARD, 100, PERCENT)
-    # past dealing with good donute and should just wait move on bc the conv will not stop
+    go_for(300, FORWARD)
+    turn_to(-150, 25)
+    print("turned")
+    go_for(700, FORWARD)
+    turn_to(-10, 25)
+    go_for(1400, FORWARD)
     print("done")
 
 
@@ -205,8 +213,7 @@ def auto_collect():
     global COLLECTED
     if not COLLECTED:
         print("collecting")
-        left_group.stop()
-        right_group.stop()
+        wait(75, MSEC)
         grab.set(True)
         COLLECTED = True
 
