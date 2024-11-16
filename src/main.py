@@ -13,8 +13,8 @@ import math
 
 # Brain should be defined by default
 brain = Brain()
-SIG_1 = Signature(1, -4823, -4161, -4492, 2559, 4147, 3352, 2.5, 0)
-SIG_2 = Signature(2, 5993, 8567, 7280, -2447, -917, -1682, 2.5, 0)
+SIG_1 = Signature(1, -4823, -4161, -4492, 2559, 4147, 3352, 1.5, 0)
+SIG_2 = Signature(2, 5993, 8567, 7280, -2447, -917, -1682, 1, 0)
 vision_4 = Vision(Ports.PORT4, 50, SIG_1, SIG_2)
 left_16 = Motor(Ports.PORT16, GearSetting.RATIO_6_1, False)
 left_19 = Motor(Ports.PORT19, GearSetting.RATIO_6_1, False)
@@ -25,8 +25,8 @@ right_13 = Motor(Ports.PORT13, GearSetting.RATIO_6_1, True)
 conv = Motor(Ports.PORT17, GearSetting.RATIO_18_1, True)
 lady_brown = Motor(Ports.PORT10, GearSetting.RATIO_36_1, False)
 grab = DigitalOut(brain.three_wire_port.a)
-doink = DigitalOut(brain.three_wire_port.b)
-da_hood = DigitalOut(brain.three_wire_port.d)
+doink = DigitalOut(brain.three_wire_port.d)
+da_hood = DigitalOut(brain.three_wire_port.b)
 drive_motors = {"left_16": left_16, "left_19": left_19, "left_18": left_18,
                 "right_12": right_12, "right_11": right_11, "right_13": right_13}
 left_group = MotorGroup(left_18, left_16, left_19)
@@ -76,26 +76,29 @@ def handle():
     draw()
 
 
-def one_stick():
-    while True:
-        throttle = control.axis3.position()
-        turn = control.axis1.position()
-        if (abs(throttle) + abs(turn) < 1):
-            left_group.stop(BRAKE)
-            right_group.stop(BRAKE)
-            continue
-        left = throttle+turn
-        right = throttle-turn
-        left_group.spin(FORWARD, left, PERCENT)
-        right_group.spin(FORWARD, right, PERCENT)
-        for name, motor_obj in drive_motors.items():
-            print(name, motor_obj.velocity(RPM), end=" ")
-        print("\n")
+def blaise_drive(ithrottle, iturn):
+    left = (blaise_slope(ithrottle)+1) * iturn + ithrottle
+    right = (-blaise_slope(ithrottle)-1) * iturn + ithrottle
+    return (left, right)
+
+
+def cal(x):
+    return x if abs(x) > 5 else 0
+
+
+def blaise_slope(x):
+    return 0 if x == 0 else x/abs(x) - 0.005*x
 
 
 def driver():
-    Thread(one_stick)
-    lady_brown.set_stopping(HOLD)
+    while True:
+        wait(.02, SECONDS)
+        drive_code = blaise_drive
+        igo, iturn = cal(control.axis3.position()), cal(
+            control.axis1.position())
+        Left, Right = drive_code(igo, iturn)
+        left_group.spin(FORWARD, Left, PERCENT)
+        right_group.spin(FORWARD, Right, PERCENT)
 
 
 BLUE_TEAM = True
@@ -119,18 +122,19 @@ def turn_to(t_heading, speed):
     # cant turn 180
     c_heading = heading_curve(sensor.heading())
     diff = t_heading-c_heading
-    while abs(t_heading - c_heading) > 0.1:
-        diff = t_heading-c_heading
+    while abs(diff) > 1:
         c_heading = heading_curve(sensor.heading())
+        diff = t_heading-c_heading
         r_speed = speed * diff_curve(diff)
         if diff < 0:
             left_group.spin(FORWARD, -r_speed, PERCENT)
             right_group.spin(FORWARD, r_speed, PERCENT)
-        else:
+        if diff > 0:
             left_group.spin(FORWARD, r_speed, PERCENT)
             right_group.spin(FORWARD, -r_speed, PERCENT)
-    left_group.stop(HOLD)
-    right_group.stop(HOLD)
+
+    left_group.stop(BRAKE)
+    right_group.stop(BRAKE)
 
 
 def diff_curve(x):
@@ -152,6 +156,7 @@ def change_team():
 
 
 def auto():
+    sensor.reset_heading()
     brain.screen.clear_screen()
     print("starting auto")
     if BLUE_TEAM:
@@ -163,18 +168,45 @@ def auto():
     lady_brown.set_stopping(COAST)
     left_group.stop()
     right_group.stop()
-    first_spin = 250  # DEGREES
+    first_spin = 245  # DEGREES
     lady_brown.spin_for(FORWARD, first_spin * 3, DEGREES, 50, PERCENT)
     wait(50, TimeUnits.MSEC)
     go_for(200, FORWARD)
-    lady_brown.spin_for(REVERSE, first_spin * 3 - 20,
+    lady_brown.spin_for(REVERSE, (first_spin - 90) * 3,
                         DEGREES, 50, PERCENT, wait=False)
-    turn_to(45, 25)
-    go_for(150, FORWARD)
+    turn_to(30, 25)
+    go_for(200, FORWARD)
     conv.spin(FORWARD, 100, PERCENT)
-    if detect == BLUE_TEAM:
-        pass
+    go_for(200, FORWARD)
+    score = False
+    if detect() == BLUE_TEAM:
+        # we have the blue dounut at a reasonable place
+        score = True
+        print("blue")
+        conv.stop()
+    else:
+        # we missed the blue dounut and should not score
+        # current plan ig is it just get rid of it
+        score = False
+        print("red")
+    turn_to(-25, 25)
+    sensor.collision(auto_collect)
+    go_for(1400, REVERSE)
+    # past dealing with good donute and should just wait move on bc the conv will not stop
     print("done")
+
+
+COLLECTED = False
+
+
+def auto_collect():
+    global COLLECTED
+    if not COLLECTED:
+        print("collecting")
+        left_group.stop()
+        right_group.stop()
+        # grab.set(True)
+        COLLECTED = True
 
 
 def detect():
@@ -192,12 +224,9 @@ def detect():
 def main():
     get_team()
     sensor.calibrate()
-    cal_time = 0
-    while sensor.is_calibrating():
-        cal_time += 0.01
-        wait(10, MSEC)
-    print("\ncalibraited in ", cal_time, "s", sep="")
-    _ = Competition(driver, auto)
+    wait(3, SECONDS)
+    print("\ncalibrated")
+    grab.set(False)
     control.buttonL1.pressed(lambda: conv.spin(FORWARD, 100, PERCENT))
     control.buttonL2.pressed(lambda: conv.spin(REVERSE, 100, PERCENT))
     control.buttonL1.released(conv.stop)
@@ -209,6 +238,7 @@ def main():
     control.buttonR2.pressed(lambda: lady_brown.spin(REVERSE, 100, PERCENT))
     control.buttonR1.released(lady_brown.stop)
     control.buttonR2.released(lady_brown.stop)
+    _ = Competition(driver, auto)
 
 
 main()
