@@ -13,9 +13,6 @@ import math
 
 # Brain should be defined by default
 brain = Brain()
-SIG_1 = Signature(1, -4823, -4161, -4492, 2559, 4147, 3352, 1.5, 0)
-SIG_2 = Signature(2, 5993, 8567, 7280, -2447, -917, -1682, 1.2, 0)
-vision_4 = Vision(Ports.PORT4, 50, SIG_1, SIG_2)
 left_16 = Motor(Ports.PORT16, GearSetting.RATIO_6_1, False)
 left_19 = Motor(Ports.PORT19, GearSetting.RATIO_6_1, False)
 left_18 = Motor(Ports.PORT18, GearSetting.RATIO_6_1, False)
@@ -35,45 +32,32 @@ control = Controller(PRIMARY)
 sensor = Inertial(Ports.PORT8)
 
 
-def get_team():
-    draw()
-    brain.screen.pressed(handle)
+class DriveTrain:
+    def __init__(self, left_group, right_group, sensor, speed) -> None:
+        self.left_group = left_group
+        self.right_group = right_group
+        self.heading = 0
+        self.speed = speed
+        self.pos = [0, 0]
+        Thread(lambda: self.keep_pos(sensor))
 
+    def drive(self, distance, wait=False):
+        left_group.spin_for(FORWARD, 180, DEGREES, self.speed, PERCENT, False)
+        right_group.spin_for(FORWARD, 180, DEGREES, self.speed, PERCENT, wait)
 
-def draw():
-    brain.screen.clear_screen()
-    brain.screen.set_pen_width(5)
-    brain.screen.set_pen_color(Color.BLUE)
-    if BLUE_TEAM:
-        brain.screen.set_pen_color(Color.BLACK)
-    brain.screen.set_fill_color(Color.BLUE)
-    brain.screen.draw_rectangle(0, 0, 240, 240)
+    def turn(self, angle):
+        pass
 
-    brain.screen.set_pen_color(Color.RED)
-    if not BLUE_TEAM:
-        brain.screen.set_pen_color(Color.BLACK)
-    brain.screen.set_fill_color(Color.RED)
-    brain.screen.draw_rectangle(240, 0, 240, 240)
-    brain.screen.set_pen_color(Color.BLACK)
+    def keep_pos(self, sensor):
+        heading_computed = 0
+        while True:
+            self.heading = sensor.heading()
+            diff = right_group.position(DEGREES) - left_group.position(DEGREES)
 
-    brain.screen.set_font(FontType.MONO60)
-    middle_y = 90
-    middle_x = 60
-    brain.screen.set_fill_color(Color.WHITE)
-    brain.screen.print_at("Red", x=middle_x+240+15,
-                          y=middle_y, opaque=(not BLUE_TEAM))
-    brain.screen.print_at("Team", x=middle_x+240,
-                          y=middle_y+60, opaque=(not BLUE_TEAM))
-    brain.screen.print_at("Blue", x=middle_x, y=middle_y, opaque=BLUE_TEAM)
-    brain.screen.print_at("Team", x=middle_x, y=middle_y+60, opaque=BLUE_TEAM)
+            self.pos = [0, 0]
 
-
-def handle():
-    global BLUE_TEAM
-    if Competition.is_enabled():
-        return
-    BLUE_TEAM = brain.screen.x_position() <= 240
-    draw()
+    def driving_turn(self):
+        pass
 
 
 def blaise_drive(ithrottle, iturn):
@@ -102,139 +86,15 @@ def driver():
         right_group.spin(FORWARD, Right, PERCENT)
 
 
-BLUE_TEAM = False
-AUTO_SPEED = 30
-
-
-def go_for(time, dir):
-    right_group.spin(dir, AUTO_SPEED, PERCENT)
-    left_group.spin(dir, AUTO_SPEED, PERCENT)
-    wait(time, TimeUnits.MSEC)
-    right_group.stop()
-    left_group.stop()
-
-
-def full_go():
-    left_group.spin(FORWARD, AUTO_SPEED, PERCENT)
-    right_group.spin(FORWARD, AUTO_SPEED, PERCENT)
-
-
-def turn_to(t_heading, speed):
-    # cant turn 180
-    c_heading = heading_curve(sensor.heading())
-    diff = t_heading-c_heading
-    while abs(diff) > 1:
-        c_heading = heading_curve(sensor.heading())
-        diff = t_heading-c_heading
-        r_speed = speed * diff_curve(diff)
-        if diff < 0:
-            left_group.spin(FORWARD, -r_speed, PERCENT)
-            right_group.spin(FORWARD, r_speed, PERCENT)
-        if diff > 0:
-            left_group.spin(FORWARD, r_speed, PERCENT)
-            right_group.spin(FORWARD, -r_speed, PERCENT)
-
-    left_group.stop(BRAKE)
-    right_group.stop(BRAKE)
-
-
-def diff_curve(x):
-    return math.log(abs(x)+1)/8
-
-
-def heading_curve(x):
-    if x <= 180:
-        return x
-    else:
-        return x-360
-
-
-def change_team():
-    global BLUE_TEAM
-    print(BLUE_TEAM)
-    control.screen.print(BLUE_TEAM)
-    BLUE_TEAM = not BLUE_TEAM
-
-
 def auto():
-    sensor.reset_heading()
-    brain.screen.clear_screen()
-    print("starting auto")
-    if BLUE_TEAM:
-        print("on blue")
-    else:
-        print("on red")
-    left_group.set_stopping(HOLD)
-    right_group.set_stopping(HOLD)
-    lady_brown.set_stopping(COAST)
-    left_group.stop()
-    right_group.stop()
-    first_spin = 245  # DEGREES
-    lady_brown.spin_for(FORWARD, first_spin * 3, DEGREES, 50, PERCENT)
-    wait(50, TimeUnits.MSEC)
-    go_for(200, FORWARD)
-    lady_brown.spin_to_position(0, DEGREES, 100, PERCENT, wait=False)
-    turn_to(35, 25)
-    go_for(200, FORWARD)
-    conv.spin(FORWARD, 100, PERCENT)
-    go_for(300, FORWARD)
-    lady_brown.stop(COAST)
-    wait(50, MSEC)
-    go_for(150, REVERSE)
-    if detect() == BLUE_TEAM:
-        # we have the blue dounut at a reasonable place
-        print("blue dounut")
-        conv.stop()
-        da_hood.set(True)
-    else:
-        # we missed the blue dounut and should not score
-        # current plan ig is it just get rid of it
-        print("red dounut")
-    go_for(300, REVERSE)
-    turn_to(-30, 25)
-    da_hood.set(False)
-    # sensor.collision(auto_collect)
-    go_for(1400, REVERSE)
-    grab.set(True)
-    conv.spin(FORWARD, 100, PERCENT)
-    go_for(300, FORWARD)
-    turn_to(-150, 25)
-    print("turned")
-    go_for(700, FORWARD)
-    turn_to(-10, 25)
-    go_for(1400, FORWARD)
-    print("done")
-
-
-COLLECTED = False
-
-
-def auto_collect():
-    global COLLECTED
-    if not COLLECTED:
-        print("collecting")
-        wait(75, MSEC)
-        grab.set(True)
-        COLLECTED = True
-
-
-def detect():
-    while True:
-        objs = vision_4.take_snapshot(SIG_1)
-        if objs is not None:
-            # its blue
-            return True
-        objs = vision_4.take_snapshot(SIG_2)
-        if objs is not None:
-            # its red
-            return False
+    pass
 
 
 def main():
-    get_team()
     sensor.calibrate()
     wait(3, SECONDS)
     print("\ncalibrated")
+    sensor.heading(RotationUnits.RAW)
     grab.set(False)
     control.buttonL1.pressed(lambda: conv.spin(FORWARD, 100, PERCENT))
     control.buttonL2.pressed(lambda: conv.spin(REVERSE, 100, PERCENT))
