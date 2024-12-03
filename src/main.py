@@ -92,22 +92,10 @@ def auto():
 
 def main():
     sensor.calibrate()
-    wait(3, SECONDS)
+    wait(2.5, SECONDS)
     print("\ncalibrated")
-    sensor.heading(RotationUnits.RAW)
-    grab.set(False)
-    control.buttonL1.pressed(lambda: conv.spin(FORWARD, 100, PERCENT))
-    control.buttonL2.pressed(lambda: conv.spin(REVERSE, 100, PERCENT))
-    control.buttonL1.released(conv.stop)
-    control.buttonL2.released(conv.stop)
-    control.buttonA.pressed(lambda: grab.set(not grab.value()))
-    control.buttonB.pressed(lambda: doink.set(not doink.value()))
-    control.buttonX.pressed(lambda: da_hood.set(not da_hood.value()))
-    control.buttonR1.pressed(lambda: lady_brown.spin(FORWARD, 100, PERCENT))
-    control.buttonR2.pressed(lambda: lady_brown.spin(REVERSE, 70, PERCENT))
-    control.buttonR1.released(lady_brown.stop)
-    control.buttonR2.released(lady_brown.stop)
-    _ = Competition(driver, auto)
+
+    driver()
 
 
 main()
