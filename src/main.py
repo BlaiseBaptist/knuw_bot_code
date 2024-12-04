@@ -29,7 +29,7 @@ drive_motors = {"left_16": left_16, "left_19": left_19, "left_18": left_18,
 left_group = MotorGroup(left_18, left_16, left_19)
 right_group = MotorGroup(right_11, right_12, right_13)
 control = Controller(PRIMARY)
-sensor = Inertial(Ports.PORT8)
+sensor = Inertial(Ports.PORT21)
 
 
 class DriveTrain:
@@ -46,15 +46,28 @@ class DriveTrain:
         right_group.spin_for(FORWARD, 180, DEGREES, self.speed, PERCENT, wait)
 
     def turn(self, angle):
-        pass
+        nt = angle - self.heading
+        speed = abs(nt-180) * 5 / 9
+        while speed > 1:
+            dir = FORWARD
+            nt = angle - self.heading
+            if nt < 0:
+                nt += 360
+            if 0 < nt and nt < 180:
+                dir = REVERSE
+            speed = abs(nt-180) * 5 / 9
+            if control.buttonX.pressing():
+                break
+            left_group.spin(dir, speed+10, PERCENT)
+            right_group.spin(dir, -speed-10, PERCENT)
+
+        left_group.stop()
+        right_group.stop()
 
     def keep_pos(self, sensor):
-        heading_computed = 0
+        print("keeping angle")
         while True:
             self.heading = sensor.heading()
-            diff = right_group.position(DEGREES) - left_group.position(DEGREES)
-
-            self.pos = [0, 0]
 
     def driving_turn(self):
         pass
@@ -71,7 +84,7 @@ def cal(x):
 
 
 def blaise_slope(x):
-    return 0 if x == 0 else x/abs(x) - 0.007*x
+    return 0 if x == 0 else x/abs(x) - 0.01*x
 
 
 def driver():
@@ -94,7 +107,12 @@ def main():
     sensor.calibrate()
     wait(2.5, SECONDS)
     print("\ncalibrated")
-
+    drive_train = DriveTrain(left_group, right_group, sensor, 100)
+    control.buttonDown.pressed(lambda: drive_train.turn(0))
+    control.buttonRight.pressed(lambda: drive_train.turn(90))
+    control.buttonUp.pressed(lambda: drive_train.turn(180))
+    control.buttonLeft.pressed(lambda: drive_train.turn(270))
+    control.buttonY.pressed(sensor.reset_heading)
     driver()
 
 
