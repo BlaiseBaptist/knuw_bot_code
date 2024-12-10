@@ -41,9 +41,14 @@ class DriveTrain:
         self.pos = [0, 0]
         Thread(lambda: self.keep_pos(sensor))
 
-    def drive(self, distance, wait=False):
-        left_group.spin_for(FORWARD, 180, DEGREES, self.speed, PERCENT, False)
-        right_group.spin_for(FORWARD, 180, DEGREES, self.speed, PERCENT, wait)
+    def drive(self, spot, wait=False):
+        distance = math.sqrt(spot[0]**2 + spot[1]**2)
+        self.turn(math.atan2(spot[1], spot[0])*180/math.pi)
+        left_group.spin_for(FORWARD, distance, DEGREES,
+                            self.speed, PERCENT, False)
+        right_group.spin_for(FORWARD, distance, DEGREES,
+                             self.speed, PERCENT, wait)
+        self.pos += spot
 
     def turn(self, angle):
         nt = angle - self.heading
@@ -65,7 +70,6 @@ class DriveTrain:
         right_group.stop()
 
     def keep_pos(self, sensor):
-        print("keeping angle")
         while True:
             self.heading = sensor.heading()
 
