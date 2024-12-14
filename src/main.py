@@ -42,17 +42,24 @@ class DriveTrain:
         Thread(lambda: self.keep_pos(sensor))
 
     def drive(self, spot, wait=False):
-        distance = math.sqrt(spot[0]**2 + spot[1]**2)
-        self.turn(math.atan2(spot[1], spot[0])*180/math.pi)
+        diff = [self.pos[0] - spot[0], self.pos[1] - spot[1]]
+        distance = math.sqrt(diff[0]**2 + diff[1]**2)
+        self.turn(math.atan2(diff[1], diff[0])*180/math.pi)
+        left_group.reset_position()
+        right_group.reset_position()
         left_group.spin_for(FORWARD, distance, DEGREES,
                             self.speed, PERCENT, False)
         right_group.spin_for(FORWARD, distance, DEGREES,
                              self.speed, PERCENT, wait)
-        self.pos += spot
+        print("left:", left_group.position(DEGREES)-distance,
+              "right:", right_group.position(DEGREES)-distance)
+        self.pos = spot
 
     def turn(self, angle):
         nt = angle - self.heading
         speed = abs(nt-180) * 5 / 9
+        while control.buttonUp.pressing() or control.buttonDown.pressing() or control.buttonLeft.pressing() or control.buttonRight.pressing():
+            sleep(10, TimeUnits.MSEC)
         while speed > 1:
             dir = FORWARD
             nt = angle - self.heading
@@ -61,17 +68,27 @@ class DriveTrain:
             if 0 < nt and nt < 180:
                 dir = REVERSE
             speed = abs(nt-180) * 5 / 9
-            if control.buttonX.pressing():
+            if control.buttonUp.pressing():
+                break
+            if control.buttonDown.pressing():
+                break
+            if control.buttonLeft.pressing():
+                break
+            if control.buttonRight.pressing():
                 break
             left_group.spin(dir, speed+10, PERCENT)
             right_group.spin(dir, -speed-10, PERCENT)
-
+        print("turn error", self.heading-angle)
         left_group.stop()
         right_group.stop()
 
     def keep_pos(self, sensor):
         while True:
             self.heading = sensor.heading()
+
+    def set_zero(self):
+        sensor.reset_heading()
+        self.pos = [0, 0]
 
     def driving_turn(self):
         pass
@@ -93,7 +110,7 @@ def blaise_slope(x):
 
 def driver():
     print("starting driver")
-    while True:
+    while Competition.is_driver_control():
         wait(.02, SECONDS)
         drive_code = blaise_drive
         igo, iturn = cal(control.axis3.position()), cal(
@@ -103,21 +120,31 @@ def driver():
         right_group.spin(FORWARD, Right, PERCENT)
 
 
+drive_train = DriveTrain(left_group, right_group, sensor, 100)
+
+
 def auto():
-    pass
+    start_dist = 1000
+    end_dist = 4000
+    drive_train.drive([start_dist, -start_dist], True)
+    while True:
+        drive_train.drive([end_dist,  -start_dist], True)
+        drive_train.drive([end_dist, -end_dist], True)
+        drive_train.drive([start_dist,  -end_dist], True)
+        drive_train.drive([start_dist, -start_dist], True)
 
 
 def main():
     sensor.calibrate()
     wait(2.5, SECONDS)
     print("\ncalibrated")
-    drive_train = DriveTrain(left_group, right_group, sensor, 100)
+    # these are right DO NOT CHANGE
     control.buttonDown.pressed(lambda: drive_train.turn(0))
-    control.buttonRight.pressed(lambda: drive_train.turn(90))
+    control.buttonLeft.pressed(lambda: drive_train.turn(90))
     control.buttonUp.pressed(lambda: drive_train.turn(180))
-    control.buttonLeft.pressed(lambda: drive_train.turn(270))
-    control.buttonY.pressed(sensor.reset_heading)
-    driver()
+    control.buttonRight.pressed(lambda: drive_train.turn(270))
+    control.buttonY.pressed(drive_train.set_zero)
+    Competition(driver, auto)
 
 
 main()
