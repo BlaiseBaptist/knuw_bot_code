@@ -19,11 +19,6 @@ left_18 = Motor(Ports.PORT18, GearSetting.RATIO_6_1, False)
 right_12 = Motor(Ports.PORT12, GearSetting.RATIO_6_1, True)
 right_11 = Motor(Ports.PORT11, GearSetting.RATIO_6_1, True)
 right_13 = Motor(Ports.PORT13, GearSetting.RATIO_6_1, True)
-conv = Motor(Ports.PORT17, GearSetting.RATIO_18_1, True)
-lady_brown = Motor(Ports.PORT10, GearSetting.RATIO_36_1, False)
-grab = DigitalOut(brain.three_wire_port.a)
-doink = DigitalOut(brain.three_wire_port.d)
-da_hood = DigitalOut(brain.three_wire_port.b)
 drive_motors = {"left_16": left_16, "left_19": left_19, "left_18": left_18,
                 "right_12": right_12, "right_11": right_11, "right_13": right_13}
 left_group = MotorGroup(left_18, left_16, left_19)
