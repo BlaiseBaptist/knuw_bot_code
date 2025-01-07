@@ -13,12 +13,13 @@ import math
 
 # Brain should be defined by default
 brain = Brain()
-left_front = Motor(Ports.PORT3, GearSetting.RATIO_6_1, False)
-left_middle = Motor(Ports.PORT4, GearSetting.RATIO_6_1, False)
-left_back = Motor(Ports.PORT5, GearSetting.RATIO_6_1, False)
-right_front = Motor(Ports.PORT6, GearSetting.RATIO_6_1, True)
-right_middle = Motor(Ports.PORT7, GearSetting.RATIO_6_1, True)
-right_back = Motor(Ports.PORT9, GearSetting.RATIO_6_1, True)
+left_front = Motor(Ports.PORT3, GearSetting.RATIO_18_1, False)
+left_middle = Motor(Ports.PORT4, GearSetting.RATIO_18_1, False)
+left_back = Motor(Ports.PORT5, GearSetting.RATIO_18_1, False)
+right_front = Motor(Ports.PORT6, GearSetting.RATIO_18_1, True)
+right_middle = Motor(Ports.PORT7, GearSetting.RATIO_18_1, True)
+right_back = Motor(Ports.PORT9, GearSetting.RATIO_18_1, True)
+conv = Motor(Ports.PORT8, GearSetting.RATIO_18_1, False)
 drive_motors = {"left_front": left_front, "left_middle": left_middle, "left_back": left_back,
                 "right_front": right_front, "right_middle": right_middle, "right_back": right_back}
 left_group = MotorGroup(left_front, left_middle, left_back)
@@ -54,4 +55,12 @@ def driver():
         right_group.spin(FORWARD, Right, PERCENT)
 
 
-driver()
+def main():
+    control.buttonL1.pressed(lambda: conv.spin(FORWARD, 100, PERCENT))
+    control.buttonL2.pressed(lambda: conv.spin(FORWARD, -100, PERCENT))
+    control.buttonL1.released(conv.stop)
+    control.buttonL2.released(conv.stop)
+    driver()
+
+
+main()
