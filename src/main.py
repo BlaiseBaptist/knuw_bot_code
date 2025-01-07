@@ -13,74 +13,17 @@ import math
 
 # Brain should be defined by default
 brain = Brain()
-left_16 = Motor(Ports.PORT16, GearSetting.RATIO_6_1, False)
-left_19 = Motor(Ports.PORT19, GearSetting.RATIO_6_1, False)
-left_18 = Motor(Ports.PORT18, GearSetting.RATIO_6_1, False)
-right_12 = Motor(Ports.PORT12, GearSetting.RATIO_6_1, True)
-right_11 = Motor(Ports.PORT11, GearSetting.RATIO_6_1, True)
-right_13 = Motor(Ports.PORT13, GearSetting.RATIO_6_1, True)
-drive_motors = {"left_16": left_16, "left_19": left_19, "left_18": left_18,
-                "right_12": right_12, "right_11": right_11, "right_13": right_13}
-left_group = MotorGroup(left_18, left_16, left_19)
-right_group = MotorGroup(right_11, right_12, right_13)
+left_front = Motor(Ports.PORT3, GearSetting.RATIO_6_1, False)
+left_middle = Motor(Ports.PORT4, GearSetting.RATIO_6_1, False)
+left_back = Motor(Ports.PORT5, GearSetting.RATIO_6_1, False)
+right_front = Motor(Ports.PORT6, GearSetting.RATIO_6_1, True)
+right_middle = Motor(Ports.PORT7, GearSetting.RATIO_6_1, True)
+right_back = Motor(Ports.PORT9, GearSetting.RATIO_6_1, True)
+drive_motors = {"left_front": left_front, "left_middle": left_middle, "left_back": left_back,
+                "right_front": right_front, "right_middle": right_middle, "right_back": right_back}
+left_group = MotorGroup(left_front, left_middle, left_back)
+right_group = MotorGroup(right_front, right_middle, right_back)
 control = Controller(PRIMARY)
-sensor = Inertial(Ports.PORT21)
-
-
-class DriveTrain:
-    def __init__(self, left_group, right_group, sensor, speed) -> None:
-        self.left_group = left_group
-        self.right_group = right_group
-        self.pos = [0, 0]
-
-    def drive(self, spot, speed, reverse=False):
-        diff = [self.pos[0] - spot[0], self.pos[1] - spot[1]]
-        dir = FORWARD
-        if reverse:
-            dir = REVERSE
-        while abs(diff[0]) + abs(diff[1]) > 100:
-            target_angle = math.atan2(
-                diff[0], diff[1])*180/math.pi + 180*reverse + 180
-            angle_off = abs(target_angle - sensor.heading())
-            if angle_off > 1.5:
-                print("off:", angle_off, "current:",
-                      sensor.heading(), "pos", self.pos)
-                self.turn(target_angle)
-            left_group.reset_position()
-            right_group.reset_position()
-            left_group.spin(dir, speed, PERCENT)
-            right_group.spin(dir, speed, PERCENT)
-            distance = (left_group.position(DEGREES) +
-                        right_group.position(DEGREES))/2
-            self.pos[0] += distance*math.cos(sensor.heading())
-            self.pos[1] += distance*math.sin(sensor.heading())
-            diff = [self.pos[0] - spot[0], self.pos[1] - spot[1]]
-            sleep(10, MSEC)
-
-    def turn(self, angle):
-        nt = angle - sensor.heading()
-        speed = abs(nt-180) * 5 / 9
-        while speed > 0.5:
-            dir = FORWARD
-            nt = angle - sensor.heading()
-            if nt < 0:
-                nt += 360
-            if 0 < nt and nt < 180:
-                dir = REVERSE
-            speed = abs(nt-180) * 5 / 9
-            left_group.spin(dir, speed+10, PERCENT)
-            right_group.spin(dir, -speed-10, PERCENT)
-            if control.buttonB.pressing():
-                break
-        left_group.stop()
-        right_group.stop()
-
-    def set_zero(self):
-        sensor.reset_heading()
-        self.pos = [0, 0]
-
-    def driving_turn(self):
-        pass
 
 
 def blaise_drive(ithrottle, iturn):
@@ -111,25 +54,4 @@ def driver():
         right_group.spin(FORWARD, Right, PERCENT)
 
 
-drive_train = DriveTrain(left_group, right_group, sensor, 100)
-
-
-def auto():
-    drive_train.turn(360)
-#    drive_train.drive([0, 1000], 100,  False)
-
-
-def main():
-    sensor.calibrate()
-    wait(2.5, SECONDS)
-    print("\ncalibrated")
-    control.buttonUp.pressed(lambda: drive_train.turn(0))
-    control.buttonRight.pressed(lambda: drive_train.turn(90))
-    control.buttonDown.pressed(lambda: drive_train.turn(180))
-    control.buttonLeft.pressed(lambda: drive_train.turn(270))
-    control.buttonX.pressed(lambda: print(sensor.heading()))
-    control.buttonY.pressed(drive_train.set_zero)
-    Competition(driver, auto)
-
-
-main()
+driver()
