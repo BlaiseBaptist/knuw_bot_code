@@ -13,16 +13,17 @@ import math
 
 # Brain should be defined by default
 brain = Brain()
-left_16 = Motor(Ports.PORT16, GearSetting.RATIO_6_1, False)
-left_19 = Motor(Ports.PORT19, GearSetting.RATIO_6_1, False)
-left_18 = Motor(Ports.PORT18, GearSetting.RATIO_6_1, False)
-right_12 = Motor(Ports.PORT12, GearSetting.RATIO_6_1, True)
-right_11 = Motor(Ports.PORT11, GearSetting.RATIO_6_1, True)
-right_13 = Motor(Ports.PORT13, GearSetting.RATIO_6_1, True)
-drive_motors = {"left_16": left_16, "left_19": left_19, "left_18": left_18,
-                "right_12": right_12, "right_11": right_11, "right_13": right_13}
-left_group = MotorGroup(left_18, left_16, left_19)
-right_group = MotorGroup(right_11, right_12, right_13)
+left_front = Motor(Ports.PORT1, GearSetting.RATIO_6_1, False)
+left_middle = Motor(Ports.PORT2, GearSetting.RATIO_6_1, False)
+left_back = Motor(Ports.PORT3, GearSetting.RATIO_6_1, False)
+right_front = Motor(Ports.PORT11, GearSetting.RATIO_6_1, True)
+right_middle = Motor(Ports.PORT12, GearSetting.RATIO_6_1, True)
+right_back = Motor(Ports.PORT13, GearSetting.RATIO_6_1, True)
+conv = Motor(Ports.PORT8, GearSetting.RATIO_6_1, False)
+drive_motors = {"left_front": left_front, "left_middle": left_middle, "left_back": left_back,
+                "right_front": right_front, "right_middle": right_middle, "right_back": right_back}
+left_group = MotorGroup(left_front, left_middle, left_back)
+right_group = MotorGroup(right_front, right_middle, right_back)
 control = Controller(PRIMARY)
 sensor = Inertial(Ports.PORT21)
 
@@ -94,7 +95,7 @@ def cal(x):
 
 
 def blaise_slope(x):
-    return 0 if x == 0 else x/abs(x) - x/150
+    return 0 if x == 0 else x/abs(x) - x/125
     # bigger is more sensitive
     # dont put lower than 100
 
