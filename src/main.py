@@ -13,12 +13,12 @@ import math
 
 # Brain should be defined by default
 brain = Brain()
-left_front = Motor(Ports.PORT1, GearSetting.RATIO_6_1, False)
-left_middle = Motor(Ports.PORT2, GearSetting.RATIO_6_1, False)
-left_back = Motor(Ports.PORT3, GearSetting.RATIO_6_1, False)
-right_front = Motor(Ports.PORT11, GearSetting.RATIO_6_1, True)
-right_middle = Motor(Ports.PORT12, GearSetting.RATIO_6_1, True)
-right_back = Motor(Ports.PORT13, GearSetting.RATIO_6_1, True)
+left_front = Motor(Ports.PORT11, GearSetting.RATIO_6_1, False)
+left_middle = Motor(Ports.PORT12, GearSetting.RATIO_6_1, False)
+left_back = Motor(Ports.PORT13, GearSetting.RATIO_6_1, False)
+right_front = Motor(Ports.PORT14, GearSetting.RATIO_6_1, True)
+right_middle = Motor(Ports.PORT15, GearSetting.RATIO_6_1, True)
+right_back = Motor(Ports.PORT16, GearSetting.RATIO_6_1, True)
 conv = Motor(Ports.PORT8, GearSetting.RATIO_6_1, False)
 drive_motors = {"left_front": left_front, "left_middle": left_middle, "left_back": left_back,
                 "right_front": right_front, "right_middle": right_middle, "right_back": right_back}
