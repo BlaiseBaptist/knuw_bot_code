@@ -19,7 +19,9 @@ left_back = Motor(Ports.PORT13, GearSetting.RATIO_6_1, False)
 right_front = Motor(Ports.PORT14, GearSetting.RATIO_6_1, True)
 right_middle = Motor(Ports.PORT15, GearSetting.RATIO_6_1, True)
 right_back = Motor(Ports.PORT16, GearSetting.RATIO_6_1, True)
-conv = Motor(Ports.PORT8, GearSetting.RATIO_6_1, False)
+conveyor = Motor(Ports.PORT8, GearSetting.RATIO_18_1, False)
+intake = Motor(Ports.PORT8, GearSetting.RATIO_18_1, False)
+wall_stakes = Motor(Ports.PORT8, GearSetting.RATIO_36_1, False)
 drive_motors = {"left_front": left_front, "left_middle": left_middle, "left_back": left_back,
                 "right_front": right_front, "right_middle": right_middle, "right_back": right_back}
 left_group = MotorGroup(left_front, left_middle, left_back)
@@ -120,16 +122,28 @@ def auto():
 #    drive_train.drive([0, 1000], 100,  False)
 
 
+def spin_full_intake(direction):
+    intake.spin(direction, 100, PERCENT)
+    conveyor.spin(direction, 100, PERCENT)
+
+
+def stop_full_intake():
+    intake.stop()
+    conveyor.stop()
+
+
 def main():
     sensor.calibrate()
     wait(2.5, SECONDS)
     print("\ncalibrated")
-    control.buttonUp.pressed(lambda: drive_train.turn(0))
-    control.buttonRight.pressed(lambda: drive_train.turn(90))
-    control.buttonDown.pressed(lambda: drive_train.turn(180))
-    control.buttonLeft.pressed(lambda: drive_train.turn(270))
-    control.buttonX.pressed(lambda: print(sensor.heading()))
-    control.buttonY.pressed(drive_train.set_zero)
+    control.buttonL1.pressed(lambda: spin_full_intake(FORWARD))
+    control.buttonL2.pressed(lambda: spin_full_intake(REVERSE))
+    control.buttonL1.released(stop_full_intake)
+    control.buttonL2.released(stop_full_intake)
+    control.buttonR1.pressed(lambda: wall_stakes.spin(FORWARD, 100, PERCENT))
+    control.buttonR2.pressed(lambda: wall_stakes.spin(REVERSE, 100, PERCENT))
+    control.buttonR1.released(wall_stakes.stop)
+    control.buttonR2.released(wall_stakes.stop)
     Competition(driver, auto)
 
 
