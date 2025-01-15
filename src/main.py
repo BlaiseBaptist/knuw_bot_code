@@ -19,8 +19,8 @@ left_back = Motor(Ports.PORT13, GearSetting.RATIO_6_1, False)
 right_front = Motor(Ports.PORT14, GearSetting.RATIO_6_1, True)
 right_middle = Motor(Ports.PORT15, GearSetting.RATIO_6_1, True)
 right_back = Motor(Ports.PORT16, GearSetting.RATIO_6_1, True)
-conveyor = Motor(Ports.PORT8, GearSetting.RATIO_18_1, False)
-intake = Motor(Ports.PORT8, GearSetting.RATIO_18_1, False)
+conveyor = Motor(Ports.PORT7, GearSetting.RATIO_18_1, False)
+intake = Motor(Ports.PORT6, GearSetting.RATIO_18_1, False)
 wall_stakes = Motor(Ports.PORT8, GearSetting.RATIO_36_1, False)
 drive_motors = {"left_front": left_front, "left_middle": left_middle, "left_back": left_back,
                 "right_front": right_front, "right_middle": right_middle, "right_back": right_back}
