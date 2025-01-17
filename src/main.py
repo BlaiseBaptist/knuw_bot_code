@@ -147,9 +147,7 @@ def main():
     control.buttonR1.released(wall_stakes.stop)
     control.buttonR2.released(wall_stakes.stop)
     control.buttonA.pressed(lambda: grabber.set( not (grabber.value())))
-    control.buttonA.pressed(lambda: grabber.set( not (grabber.value)))
     control.buttonB.pressed(lambda: flex_wheel_lift.set( not (flex_wheel_lift.value())))
-    control.buttonB.pressed(lambda: flex_wheel_lift.set( not (flex_wheel_lift.value)))
     Competition(driver, auto)
 
 
