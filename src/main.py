@@ -26,6 +26,8 @@ drive_motors = {"left_front": left_front, "left_middle": left_middle, "left_back
                 "right_front": right_front, "right_middle": right_middle, "right_back": right_back}
 left_group = MotorGroup(left_front, left_middle, left_back)
 right_group = MotorGroup(right_front, right_middle, right_back)
+grabber = DigitalOut(brain.three_wire_port.a)
+flex_wheel_lift = DigitalOut(brain.three_wire_port.b)
 control = Controller(PRIMARY)
 sensor = Inertial(Ports.PORT21)
 
@@ -144,6 +146,8 @@ def main():
     control.buttonR2.pressed(lambda: wall_stakes.spin(REVERSE, 100, PERCENT))
     control.buttonR1.released(wall_stakes.stop)
     control.buttonR2.released(wall_stakes.stop)
+    control.buttonA.pressed(lambda: grabber.set( not (grabber.value())))
+    control.buttonB.pressed(lambda: flex_wheel_lift.set( not (flex_wheel_lift.value() )))
     Competition(driver, auto)
 
 
