@@ -26,10 +26,11 @@ drive_motors = {"left_front": left_front, "left_middle": left_middle, "left_back
                 "right_front": right_front, "right_middle": right_middle, "right_back": right_back}
 left_group = MotorGroup(left_front, left_middle, left_back)
 right_group = MotorGroup(right_front, right_middle, right_back)
-grabber = DigitalOut(brain.three_wire_port.a)
-flex_wheel_lift = DigitalOut(brain.three_wire_port.b)
+grabber = DigitalOut(brain.three_wire_port.h)
+flex_wheel_lift_up = DigitalOut(brain.three_wire_port.a)
+flex_wheel_lift_down = DigitalOut(brain.three_wire_port.b)
 control = Controller(PRIMARY)
-sensor = Inertial(Ports.PORT21)
+sensor = Inertial(Ports.PORT17)
 
 
 class DriveTrain:
@@ -64,17 +65,16 @@ class DriveTrain:
 
     def turn(self, angle):
         nt = angle - sensor.heading()
-        speed = abs(nt-180) * 5 / 9
-        while speed > 0.5:
-            dir = FORWARD
+        speed_factor = 1
+        speed = (abs(nt-180)/3.6) * speed_factor
+        while speed > (1*speed_factor)/3.6:
+            dir = REVERSE if (0 < nt and nt < 180) else FORWARD
             nt = angle - sensor.heading()
             if nt < 0:
                 nt += 360
-            if 0 < nt and nt < 180:
-                dir = REVERSE
-            speed = abs(nt-180) * 5 / 9
-            left_group.spin(dir, speed+10, PERCENT)
-            right_group.spin(dir, -speed-10, PERCENT)
+            speed = (abs(nt-180)/3.6) * speed_factor
+            left_group.spin(dir, speed+2, PERCENT)
+            right_group.spin(dir, -speed-2, PERCENT)
             if control.buttonB.pressing():
                 break
         left_group.stop()
@@ -109,19 +109,59 @@ def driver():
     while Competition.is_driver_control():
         wait(.02, SECONDS)
         drive_code = blaise_drive
-        igo, iturn = cal(control.axis3.position()), cal(
+        igo, iturn = cal(-control.axis3.position()), cal(
             control.axis1.position())
         Left, Right = drive_code(igo, iturn)
         left_group.spin(FORWARD, Left, PERCENT)
         right_group.spin(FORWARD, Right, PERCENT)
 
 
-drive_train = DriveTrain(left_group, right_group, sensor, 100)
+drive_train = DriveTrain(left_group, right_group, sensor, 40)
 
 
 def auto():
-    drive_train.turn(360)
-#    drive_train.drive([0, 1000], 100,  False)
+    brain.timer.reset()
+    grabber.set(False)
+    wall_stakes_time = 1400
+    sensor.set_heading(0)
+    wall_stakes.spin(FORWARD, 100, PERCENT)
+    wait(wall_stakes_time, MSEC)
+    wall_stakes.spin(REVERSE, 100, PERCENT)
+    wait(500, MSEC)
+    drive_train.turn(230)
+    wait(wall_stakes_time-500, MSEC)
+    wall_stakes.stop()
+    left_group.spin(FORWARD, 30, PERCENT)
+    right_group.spin(FORWARD, 30, PERCENT)
+    wait(1400, MSEC)
+    grabber.set(True)
+    left_group.stop()
+    right_group.stop()
+    drive_train.turn(0)
+    spin_full_intake(FORWARD)
+    left_group.spin(REVERSE, 30, PERCENT)
+    right_group.spin(REVERSE, 30, PERCENT)
+    wait(750, MSEC)
+    left_group.stop()
+    right_group.stop()
+    drive_train.turn(220)
+    left_group.spin(REVERSE, 40, PERCENT)
+    right_group.spin(REVERSE, 40, PERCENT)
+    back_time = 2000
+    wait(400, MSEC)
+    flex_wheel_lift_down.set(False)
+    flex_wheel_lift_up.set(True)
+    wait(100, MSEC)
+    flex_wheel_lift_up.set(False)
+    wait(back_time-500, MSEC)
+    left_group.stop()
+    right_group.stop()
+    flex_wheel_lift_down.set(True)
+    drive_train.turn(90)
+    flex_wheel_lift_down.set(False)
+    left_group.spin(REVERSE, 30, PERCENT)
+    right_group.spin(REVERSE, 30, PERCENT)
+    print("auto time", brain.timer.value())
 
 
 def spin_full_intake(direction):
@@ -147,11 +187,6 @@ def main():
     control.buttonR1.released(wall_stakes.stop)
     control.buttonR2.released(wall_stakes.stop)
     control.buttonA.pressed(lambda: grabber.set(not (grabber.value())))
-    control.buttonA.pressed(lambda: grabber.set(not (grabber.value)))
-    control.buttonB.pressed(lambda: flex_wheel_lift.set(
-        not (flex_wheel_lift.value())))
-    control.buttonB.pressed(
-        lambda: flex_wheel_lift.set(not (flex_wheel_lift.value)))
     Competition(driver, auto)
 
 
