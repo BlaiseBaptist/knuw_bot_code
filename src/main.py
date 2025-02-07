@@ -73,8 +73,8 @@ class DriveTrain:
             if nt < 0:
                 nt += 360
             speed = (abs(nt-180)/3.6) * speed_factor
-            left_group.spin(dir, speed+2, PERCENT)
-            right_group.spin(dir, -speed-2, PERCENT)
+            left_group.spin(dir, speed+2.4, PERCENT)
+            right_group.spin(dir, -speed-2.4, PERCENT)
             if control.buttonB.pressing():
                 break
         left_group.stop()
@@ -120,6 +120,7 @@ drive_train = DriveTrain(left_group, right_group, sensor, 40)
 
 
 def auto():
+    print("Starting AUTOv1.20.7")
     brain.timer.reset()
     grabber.set(False)
     wall_stakes_time = 1400
@@ -128,17 +129,30 @@ def auto():
     wait(wall_stakes_time, MSEC)
     wall_stakes.spin(REVERSE, 100, PERCENT)
     wait(500, MSEC)
-    drive_train.turn(230)
+    spin_full_intake(REVERSE)
+    flex_wheel_lift_down.set(True)
+    flex_wheel_lift_up.set(False)
+    single_ring_time = 200
+    left_group.spin(REVERSE, 100, PERCENT)
+    right_group.spin(REVERSE, 100, PERCENT)
+    wait(single_ring_time, MSEC)
+    left_group.spin(FORWARD, 100, PERCENT)
+    right_group.spin(FORWARD, 100, PERCENT)
+    wait(single_ring_time, MSEC)
+    left_group.stop()
+    right_group.stop()
+    drive_train.turn(250)
+    spin_full_intake(FORWARD)
+    flex_wheel_lift_down.set(False)
     wait(wall_stakes_time-500, MSEC)
     wall_stakes.stop()
-    left_group.spin(FORWARD, 30, PERCENT)
-    right_group.spin(FORWARD, 30, PERCENT)
-    wait(1400, MSEC)
+    left_group.spin(FORWARD, 40, PERCENT)
+    right_group.spin(FORWARD, 40, PERCENT)
+    wait(1300, MSEC)
     grabber.set(True)
     left_group.stop()
     right_group.stop()
-    drive_train.turn(0)
-    spin_full_intake(FORWARD)
+    drive_train.turn(340)
     left_group.spin(REVERSE, 30, PERCENT)
     right_group.spin(REVERSE, 30, PERCENT)
     wait(750, MSEC)
@@ -147,20 +161,25 @@ def auto():
     drive_train.turn(220)
     left_group.spin(REVERSE, 40, PERCENT)
     right_group.spin(REVERSE, 40, PERCENT)
-    back_time = 2000
-    wait(400, MSEC)
+    back_time = 1800
+    wait(500, MSEC)
     flex_wheel_lift_down.set(False)
     flex_wheel_lift_up.set(True)
-    wait(100, MSEC)
+    wait(500, MSEC)
     flex_wheel_lift_up.set(False)
-    wait(back_time-500, MSEC)
+    wait(back_time-1000, MSEC)
     left_group.stop()
     right_group.stop()
-    flex_wheel_lift_down.set(True)
+    Thread(lower_flexes)
+    wait(50, MSEC)
     drive_train.turn(90)
-    flex_wheel_lift_down.set(False)
-    left_group.spin(REVERSE, 30, PERCENT)
-    right_group.spin(REVERSE, 30, PERCENT)
+    left_group.spin(REVERSE, 40, PERCENT)
+    right_group.spin(REVERSE, 40, PERCENT)
+    wait(1000, MSEC)
+    left_group.stop()
+    right_group.stop()
+    control.screen.set_cursor(3, 1)
+    control.screen.print(brain.timer.value())
     print("auto time", brain.timer.value())
 
 
@@ -172,6 +191,20 @@ def spin_full_intake(direction):
 def stop_full_intake():
     intake.stop()
     conveyor.stop()
+
+
+def lift_flexes():
+    flex_wheel_lift_down.set(False)
+    flex_wheel_lift_up.set(True)
+    wait(100, MSEC)
+    flex_wheel_lift_up.set(False)
+
+
+def lower_flexes():
+    flex_wheel_lift_down.set(True)
+    flex_wheel_lift_up.set(False)
+    wait(100, MSEC)
+    flex_wheel_lift_down.set(False)
 
 
 def main():
@@ -187,6 +220,8 @@ def main():
     control.buttonR1.released(wall_stakes.stop)
     control.buttonR2.released(wall_stakes.stop)
     control.buttonA.pressed(lambda: grabber.set(not (grabber.value())))
+    control.buttonX.pressed(lift_flexes)
+    control.buttonY.pressed(lower_flexes)
     Competition(driver, auto)
 
 
