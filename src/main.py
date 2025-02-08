@@ -45,24 +45,25 @@ class DriveTrain:
         dir = FORWARD
         if reverse:
             dir = REVERSE
-        target_angle = math.atan2(
-            diff[0], diff[1])*180/math.pi + 180*reverse
-        angle_off = abs(target_angle - sensor.heading())
-        print("off:", angle_off, "current:",
-              sensor.heading(), "target:", target_angle, "pos", self.pos)
-        self.turn(target_angle)
         while abs(diff[0]) + abs(diff[1]) > 100:
-            distance = (left_group.position(DEGREES) +
-                        right_group.position(DEGREES))/2
+            target_angle = math.atan2(
+                diff[0], diff[1])*180/math.pi + 180*reverse
+            angle_off = abs(target_angle - sensor.heading())
+            if angle_off > 10:
+                # print("off:", angle_off, "current:",
+                # sensor.heading(), "target:", target_angle, "pos", self.pos)
+                self.turn(target_angle)
             left_group.reset_position()
             right_group.reset_position()
+            diff = [self.pos[0] - spot[0], self.pos[1] - spot[1]]
             left_group.spin(dir, -speed, PERCENT)
             right_group.spin(dir, -speed, PERCENT)
-            self.pos[0] += distance*math.cos(sensor.heading())
-            self.pos[1] += distance*math.sin(sensor.heading())
-            print("pos", self.pos)
-            diff = [self.pos[0] - spot[0], self.pos[1] - spot[1]]
-            sleep(10, MSEC)
+            sleep(20, MSEC)
+            distance = (left_group.position(DEGREES) +
+                        right_group.position(DEGREES))/2
+            self.pos[0] += distance * math.cos(sensor.heading()*math.pi/180)
+            self.pos[1] += distance * math.sin(sensor.heading()*math.pi/180)
+            print(self.pos, diff, sensor.heading())
         left_group.stop()
         right_group.stop()
 
@@ -124,16 +125,18 @@ drive_train = DriveTrain(left_group, right_group, sensor, 40)
 
 def auto_right():
     brain.timer.reset()
-    print("Starting AUTOrightv.2.1")
+    drive_train.pos = [0, 0]
+    print("Starting AUTOrightv.3.3")
     grabber.set(False)
     sensor.set_heading(0)
     wall_stakes_time = 1400
     wall_stakes.spin(FORWARD, 100, PERCENT)
     wait(wall_stakes_time, MSEC)
     wall_stakes.spin(REVERSE, 100, PERCENT)
-    wait(500, MSEC)
+    wait(wall_stakes_time-100, MSEC)
     wall_stakes.stop()
-    drive_train.drive([150, -75], 50, True)
+    mogo_dist = 400
+    drive_train.drive([mogo_dist, 0], 50, True)
     print("auto time", brain.timer.value())
 
 
@@ -239,7 +242,7 @@ def main():
     control.buttonUp.pressed(lift_flexes)
     control.buttonDown.pressed(lower_flexes)
     control.buttonB.pressed(lambda: doinker.set(not (doinker.value())))
-    Competition(driver, auto_left)
+    Competition(driver, auto_right)
     while True:
         avg, max = monitor_temp()
         out = 'avg{:2.0f},max{:2.0f}'.format(avg, max)
