@@ -29,6 +29,7 @@ right_group = MotorGroup(right_front, right_middle, right_back)
 grabber = DigitalOut(brain.three_wire_port.h)
 flex_wheel_lift_up = DigitalOut(brain.three_wire_port.a)
 flex_wheel_lift_down = DigitalOut(brain.three_wire_port.b)
+doinker = DigitalOut(brain.three_wire_port.c)
 control = Controller(PRIMARY)
 sensor = Inertial(Ports.PORT17)
 
@@ -44,24 +45,26 @@ class DriveTrain:
         dir = FORWARD
         if reverse:
             dir = REVERSE
+        target_angle = math.atan2(
+            diff[0], diff[1])*180/math.pi + 180*reverse
+        angle_off = abs(target_angle - sensor.heading())
+        print("off:", angle_off, "current:",
+              sensor.heading(), "target:", target_angle, "pos", self.pos)
+        self.turn(target_angle)
         while abs(diff[0]) + abs(diff[1]) > 100:
-            target_angle = math.atan2(
-                diff[0], diff[1])*180/math.pi + 180*reverse + 180
-            angle_off = abs(target_angle - sensor.heading())
-            if angle_off > 1.5:
-                print("off:", angle_off, "current:",
-                      sensor.heading(), "pos", self.pos)
-                self.turn(target_angle)
-            left_group.reset_position()
-            right_group.reset_position()
-            left_group.spin(dir, speed, PERCENT)
-            right_group.spin(dir, speed, PERCENT)
             distance = (left_group.position(DEGREES) +
                         right_group.position(DEGREES))/2
+            left_group.reset_position()
+            right_group.reset_position()
+            left_group.spin(dir, -speed, PERCENT)
+            right_group.spin(dir, -speed, PERCENT)
             self.pos[0] += distance*math.cos(sensor.heading())
             self.pos[1] += distance*math.sin(sensor.heading())
+            print("pos", self.pos)
             diff = [self.pos[0] - spot[0], self.pos[1] - spot[1]]
             sleep(10, MSEC)
+        left_group.stop()
+        right_group.stop()
 
     def turn(self, angle):
         nt = angle - sensor.heading()
@@ -80,13 +83,6 @@ class DriveTrain:
         left_group.stop()
         right_group.stop()
 
-    def set_zero(self):
-        sensor.reset_heading()
-        self.pos = [0, 0]
-
-    def driving_turn(self):
-        pass
-
 
 def blaise_drive(ithrottle, iturn):
     left = (blaise_slope(ithrottle)+1) * iturn + ithrottle
@@ -95,13 +91,20 @@ def blaise_drive(ithrottle, iturn):
 
 
 def cal(x):
-    return x if abs(x) > 5 else 0
+    return 0 if abs(x) < 5 else math.tan(x/100)*64.2092615934
 
 
 def blaise_slope(x):
     return 0 if x == 0 else x/abs(x) - x/125
     # bigger is more sensitive
     # dont put lower than 100
+
+
+def monitor_temp():
+    overtemp = []
+    for name, motor_obj in drive_motors.items():
+        overtemp.append(motor_obj.temperature())
+    return (sum(overtemp)/len(overtemp), max(overtemp))
 
 
 def driver():
@@ -119,9 +122,24 @@ def driver():
 drive_train = DriveTrain(left_group, right_group, sensor, 40)
 
 
-def auto():
-    print("Starting AUTOv1.20.7")
+def auto_right():
     brain.timer.reset()
+    print("Starting AUTOrightv.2.1")
+    grabber.set(False)
+    sensor.set_heading(0)
+    wall_stakes_time = 1400
+    wall_stakes.spin(FORWARD, 100, PERCENT)
+    wait(wall_stakes_time, MSEC)
+    wall_stakes.spin(REVERSE, 100, PERCENT)
+    wait(500, MSEC)
+    wall_stakes.stop()
+    drive_train.drive([150, -75], 50, True)
+    print("auto time", brain.timer.value())
+
+
+def auto_left():
+    brain.timer.reset()
+    print("Starting AUTOleftv.20.7")
     grabber.set(False)
     wall_stakes_time = 1400
     sensor.set_heading(0)
@@ -178,8 +196,6 @@ def auto():
     wait(1000, MSEC)
     left_group.stop()
     right_group.stop()
-    control.screen.set_cursor(3, 1)
-    control.screen.print(brain.timer.value())
     print("auto time", brain.timer.value())
 
 
@@ -220,9 +236,17 @@ def main():
     control.buttonR1.released(wall_stakes.stop)
     control.buttonR2.released(wall_stakes.stop)
     control.buttonA.pressed(lambda: grabber.set(not (grabber.value())))
-    control.buttonX.pressed(lift_flexes)
-    control.buttonY.pressed(lower_flexes)
-    Competition(driver, auto)
+    control.buttonUp.pressed(lift_flexes)
+    control.buttonDown.pressed(lower_flexes)
+    control.buttonB.pressed(lambda: doinker.set(not (doinker.value())))
+    Competition(driver, auto_left)
+    while True:
+        avg, max = monitor_temp()
+        out = 'avg{:2.0f},max{:2.0f}'.format(avg, max)
+        control.screen.set_cursor(0, 3)
+        control.screen.clear_line(3)
+        control.screen.print(out)
+        wait(500, MSEC)
 
 
 main()
