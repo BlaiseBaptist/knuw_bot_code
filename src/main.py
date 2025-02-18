@@ -96,7 +96,7 @@ def cal(x):
 
 
 def blaise_slope(x):
-    return 0 if x == 0 else x/abs(x) - x/125
+    return 0 if x == 0 else x/abs(x) - x/100
     # bigger is more sensitive
     # dont put lower than 100
 
@@ -135,8 +135,14 @@ def auto_right():
     wall_stakes.spin(REVERSE, 100, PERCENT)
     wait(wall_stakes_time-100, MSEC)
     wall_stakes.stop()
-    mogo_dist = 400
-    drive_train.drive([mogo_dist, 0], 50, True)
+    # mogo_dist = 400
+    # drive_train.drive([mogo_dist, 0], 50, True)
+    drive_train.turn(90)
+    right_group.spin(FORWARD, 30, PERCENT)
+    left_group.spin(FORWARD, 30, PERCENT)
+    wait(500, MSEC)
+    right_group.stop()
+    left_group.stop()
     print("auto time", brain.timer.value())
 
 
@@ -242,7 +248,7 @@ def main():
     control.buttonUp.pressed(lift_flexes)
     control.buttonDown.pressed(lower_flexes)
     control.buttonB.pressed(lambda: doinker.set(not (doinker.value())))
-    Competition(driver, auto_right)
+    Competition(driver, auto_left)
     while True:
         avg, max = monitor_temp()
         out = 'avg{:2.0f},max{:2.0f}'.format(avg, max)
