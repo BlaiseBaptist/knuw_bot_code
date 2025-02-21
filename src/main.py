@@ -35,37 +35,27 @@ sensor = Inertial(Ports.PORT17)
 
 
 class DriveTrain:
-    def __init__(self, left_group, right_group, sensor, speed) -> None:
+    def __init__(self, left_group, right_group) -> None:
         self.left_group = left_group
         self.right_group = right_group
         self.pos = [0, 0]
+        self.prog_count = 0
 
-    def drive(self, spot, speed, reverse=False):
+    def drive(self, spot, speed, reverse=False, wait=False):
         diff = [self.pos[0] - spot[0], self.pos[1] - spot[1]]
-        dir = FORWARD
-        if reverse:
-            dir = REVERSE
-        while abs(diff[0]) + abs(diff[1]) > 100:
-            target_angle = math.atan2(
-                diff[0], diff[1])*180/math.pi + 180*reverse
-            angle_off = abs(target_angle - sensor.heading())
-            if angle_off > 10:
-                # print("off:", angle_off, "current:",
-                # sensor.heading(), "target:", target_angle, "pos", self.pos)
-                self.turn(target_angle)
-            left_group.reset_position()
-            right_group.reset_position()
-            diff = [self.pos[0] - spot[0], self.pos[1] - spot[1]]
-            left_group.spin(dir, -speed, PERCENT)
-            right_group.spin(dir, -speed, PERCENT)
-            sleep(20, MSEC)
-            distance = (left_group.position(DEGREES) +
-                        right_group.position(DEGREES))/2
-            self.pos[0] += distance * math.cos(sensor.heading()*math.pi/180)
-            self.pos[1] += distance * math.sin(sensor.heading()*math.pi/180)
-            print(self.pos, diff, sensor.heading())
-        left_group.stop()
-        right_group.stop()
+        target_angle = math.atan2(
+            diff[0], diff[1])*180/math.pi + 180*reverse
+        self.turn(target_angle)
+        left_group.reset_position()
+        right_group.reset_position()
+        distance = math.sqrt(
+            pow(diff[0], 2) + pow(diff[1], 2)) * (-1 if reverse else 1)
+        print("distance to go:", distance)
+        left_group.spin_to_position(distance, DEGREES, speed, PERCENT, False)
+        right_group.spin_to_position(distance, DEGREES, speed, PERCENT, wait)
+
+        self.pos[0] = spot[0]
+        self.pos[1] = spot[1]
 
     def turn(self, angle):
         nt = angle - sensor.heading()
@@ -108,6 +98,11 @@ def monitor_temp():
     return (sum(overtemp)/len(overtemp), max(overtemp))
 
 
+def skills():
+    programing_skills()
+    driver()
+
+
 def driver():
     print("starting driver")
     while Competition.is_driver_control():
@@ -120,7 +115,36 @@ def driver():
         right_group.spin(FORWARD, Right, PERCENT)
 
 
-drive_train = DriveTrain(left_group, right_group, sensor, 40)
+drive_train = DriveTrain(left_group, right_group)
+
+
+def programing_skills():
+    if drive_train.prog_count > 0:
+        return
+    drive_train.prog_count += 1
+    brain.timer.reset()
+    sensor.set_heading(0)
+    drive_train.pos = [0, 0]
+    wall_stakes.set_velocity(100, PERCENT)
+    wall_stakes.spin_for(FORWARD, 800, MSEC)
+    wall_stakes.spin(REVERSE, 100, PERCENT)
+    grabber.set(False)
+    # drive is [x,y] x is away and y is across in this case
+    drive_train.drive([400, 800], 100, False)
+    wait(300, MSEC)
+    wall_stakes.stop()
+    grabber.set(True)
+    spin_full_intake(FORWARD)
+    drive_train.drive([1200, 800], 100, True, True)
+    drive_train.drive([1100, 2000], 100, True, True)
+    if Competition.is_driver_control():
+        drive_train.drive([4000, 1600], 100, True, False)
+        print("starting driver at: ", brain.timer.time(), "ms", sep="")
+        return
+    drive_train.drive([0, 1600], 100, True, True)
+    print("total time: ", brain.timer.time(), "ms", sep="")
+    grabber.set(False)
+    stop_full_intake()
 
 
 def auto_right():
@@ -135,8 +159,6 @@ def auto_right():
     wall_stakes.spin(REVERSE, 100, PERCENT)
     wait(wall_stakes_time-100, MSEC)
     wall_stakes.stop()
-    # mogo_dist = 400
-    # drive_train.drive([mogo_dist, 0], 50, True)
     drive_train.turn(90)
     right_group.spin(FORWARD, 30, PERCENT)
     left_group.spin(FORWARD, 30, PERCENT)
@@ -248,7 +270,7 @@ def main():
     control.buttonUp.pressed(lift_flexes)
     control.buttonDown.pressed(lower_flexes)
     control.buttonB.pressed(lambda: doinker.set(not (doinker.value())))
-    Competition(driver, auto_left)
+    Competition(skills, programing_skills)
     while True:
         avg, max = monitor_temp()
         out = 'avg{:2.0f},max{:2.0f}'.format(avg, max)

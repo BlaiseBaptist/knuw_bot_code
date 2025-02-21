@@ -1,16 +1,16 @@
 {
 	"extension": {
-		"version": "0.1.4",
+		"version": "0.6.1",
 		"json": 2
 	},
 	"project": {
-		"name": "main code -- driver",
-		"description": "driver code does left side in auto",
+		"name": "skills code",
+		"description": "code for prog or diver tuned for caleb",
 		"creationDate": "100/100/100, 13:70:-01 PM",
 		"platform": "V5",
 		"language": "python",
-		"slot": 1,
-		"sdkVersion": "V5_1_0_1_19",
+		"slot": 3,
+		"sdkVersion": "V5_1_0_1_25",
 		"python": {
 			"main": "src/main.py"
 		}
