@@ -50,7 +50,6 @@ class DriveTrain:
         right_group.reset_position()
         distance = math.sqrt(
             pow(diff[0], 2) + pow(diff[1], 2)) * (-1 if reverse else 1)
-        print("distance to go:", distance)
         left_group.spin_to_position(distance, DEGREES, speed, PERCENT, False)
         right_group.spin_to_position(distance, DEGREES, speed, PERCENT, wait)
 
@@ -82,7 +81,7 @@ def blaise_drive(ithrottle, iturn):
 
 
 def cal(x):
-    return 0 if abs(x) < 5 else math.tan(x/100)*64.2092615934
+    return 0 if abs(x) < 5 else math.tan(x/100)*64.2092615934*0.75
 
 
 def blaise_slope(x):
@@ -99,20 +98,27 @@ def monitor_temp():
 
 
 def skills():
+    # grabber.set(True)
     programing_skills()
     driver()
+    # second_prog()
 
 
 def driver():
     print("starting driver")
+    control.rumble(".")
     while Competition.is_driver_control():
         wait(.02, SECONDS)
         drive_code = blaise_drive
-        igo, iturn = cal(-control.axis3.position()), cal(
+        throttle, turn = cal(-control.axis3.position()), cal(
             control.axis1.position())
-        Left, Right = drive_code(igo, iturn)
+        Left, Right = drive_code(throttle, turn)
         left_group.spin(FORWARD, Left, PERCENT)
         right_group.spin(FORWARD, Right, PERCENT)
+        # if control.buttonY.pressing():
+        #     second_prog()
+        #     control.rumble(".")
+        #     break
 
 
 drive_train = DriveTrain(left_group, right_group)
@@ -136,15 +142,67 @@ def programing_skills():
     grabber.set(True)
     spin_full_intake(FORWARD)
     drive_train.drive([1200, 800], 100, True, True)
-    drive_train.drive([1100, 2000], 100, True, True)
+    drive_train.drive([1100, 2200], 100, True, True)
     if Competition.is_driver_control():
-        drive_train.drive([4000, 1600], 100, True, False)
         print("starting driver at: ", brain.timer.time(), "ms", sep="")
         return
     drive_train.drive([0, 1600], 100, True, True)
-    print("total time: ", brain.timer.time(), "ms", sep="")
-    grabber.set(False)
+    drive_train.drive([-100, 2200], 100, False, False)
+    wait(2000, MSEC)
+    drive_train.pos = [200, 2000]
     stop_full_intake()
+    grabber.set(False)
+    drive_train.drive([250, -200], 100, False, True)
+    print("total time: ", brain.timer.time(), "ms", sep="")
+    # runs -- data
+    # 1 -- low by 1 robot
+    # 2 -- high by .5 robot, went too far
+    # 3 -- perfect
+    # 4 -- close, went too far
+    # 5 -- on target, went too far
+    # 6 -- on target, went too far
+    # 7 -- missed donut dragged first mogo
+    # 8 -- on target
+    # 9 -- low by .7 robot
+    # 10 -- slightly high went too far
+    # 11 -- too far
+    # 12 -- too far
+    # changed the distance here 400 -> 300
+    # 13 -- low
+    # 14 -- fluke error with first donut
+    # 15 -- slightly high short
+    # 16 -- short on second move
+    # 17 -- short on second move
+    # 18 -- far then short, low
+    # 19 -- good, then short
+    # 20 -- quite low, short, low on air
+    wait(100, MSEC)
+    drive_train.drive([250, -700], 75, False, False)
+    wait(400, MSEC)
+    grabber.set(True)
+    spin_full_intake(FORWARD)
+    # drive_train.drive([1000, -1000], 100, True, True)
+
+
+def second_prog():
+    print("starting second prog")
+    sensor.set_heading(180)
+    spin_full_intake(FORWARD)
+    drive_train.drive([0, 1200], 100, True, True)
+    drive_train.drive([1200, 1200], 100, True, True)
+    drive_train.drive([800, 800], 100, True, True)
+    Thread(driver)
+
+
+def monitor_conveyor():
+    while True:
+        if conveyor.current() < 2.5:
+            continue
+        if conveyor.velocity(PERCENT) > 70:
+            continue
+        conveyor.spin(REVERSE)
+        wait(500, MSEC)
+        conveyor.spin(FORWARD)
 
 
 def auto_right():
@@ -270,6 +328,7 @@ def main():
     control.buttonUp.pressed(lift_flexes)
     control.buttonDown.pressed(lower_flexes)
     control.buttonB.pressed(lambda: doinker.set(not (doinker.value())))
+    # control.buttonX.pressed(driver)
     Competition(skills, programing_skills)
     while True:
         avg, max = monitor_temp()
