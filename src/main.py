@@ -74,9 +74,9 @@ class DriveTrain:
         right_group.stop()
 
 
-def blaise_drive(ithrottle, iturn):
-    left = (blaise_slope(ithrottle)+1) * iturn + ithrottle
-    right = (-blaise_slope(ithrottle)-1) * iturn + ithrottle
+def blaise_drive(throttle, turn):
+    left = (blaise_slope(throttle)+1) * turn + throttle
+    right = (-blaise_slope(throttle)-1) * turn + throttle
     return (left, right)
 
 
