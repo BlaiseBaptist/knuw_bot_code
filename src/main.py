@@ -168,8 +168,6 @@ def programing_skills():
     # drive_train.drive([3000, 200], 100, True, True)
     print("total time: ", brain.timer.time(), "ms", sep="")
 
-
-def monitor_conveyor():
     while True:
         if conveyor.current() < 2.5:
             continue
@@ -183,21 +181,15 @@ def monitor_conveyor():
 def auto_right():
     brain.timer.reset()
     drive_train.pos = [0, 0]
-    print("Starting AUTOrightv.3.3")
-    grabber.set(False)
     sensor.set_heading(0)
-    wall_stakes_time = 1400
-    wall_stakes.spin(FORWARD, 100, PERCENT)
-    wait(wall_stakes_time, MSEC)
+    grabber.set(False)
+    print("Starting AUTOrightv.4.0")
+    wall_stakes.set_velocity(100, PERCENT)
+    wall_stakes.spin_for(FORWARD, 800, MSEC)
     wall_stakes.spin(REVERSE, 100, PERCENT)
-    wait(wall_stakes_time-100, MSEC)
+    drive_train.drive([400, 1600], 100, False)
+    wait(300, MSEC)
     wall_stakes.stop()
-    drive_train.turn(90)
-    right_group.spin(FORWARD, 30, PERCENT)
-    left_group.spin(FORWARD, 30, PERCENT)
-    wait(500, MSEC)
-    right_group.stop()
-    left_group.stop()
     print("auto time", brain.timer.value())
 
 
