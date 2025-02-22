@@ -181,15 +181,24 @@ def programing_skills():
 def auto_right():
     brain.timer.reset()
     drive_train.pos = [0, 0]
-    sensor.set_heading(0)
+    sensor.set_heading(180)
     grabber.set(False)
-    print("Starting AUTOrightv.4.0")
     wall_stakes.set_velocity(100, PERCENT)
     wall_stakes.spin_for(FORWARD, 800, MSEC)
     wall_stakes.spin(REVERSE, 100, PERCENT)
-    drive_train.drive([400, 1600], 100, False)
-    wait(300, MSEC)
+    wait(200, MSEC)
+    drive_train.drive([1600, -900], 50, False, False)
+    wait(1000, MSEC)
     wall_stakes.stop()
+    grabber.set(True)
+    spin_full_intake(FORWARD)
+    drive_train.drive([1400, -1800], 100, True, True)
+    wait(1500, MSEC)
+    flex_wheel_lift_up.set(True)
+    flex_wheel_lift_down.set(False)
+    drive_train.drive([600, -200], 100, True, True)
+    flex_wheel_lift_up.set(False)
+    drive_train.drive([1200, 0], 100, True, True)
     print("auto time", brain.timer.value())
 
 
