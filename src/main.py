@@ -142,46 +142,37 @@ def programing_skills():
     grabber.set(True)
     spin_full_intake(FORWARD)
     drive_train.drive([1200, 800], 100, True, True)
-    drive_train.drive([1100, 2200], 100, True, True)
+    drive_train.drive([1100, 2000], 100, True, True)
     if Competition.is_driver_control():
         print("starting driver at: ", brain.timer.time(), "ms", sep="")
         return
-    drive_train.drive([0, 1600], 100, True, True)
-    drive_train.drive([-100, 2200], 100, False, False)
+    drive_train.drive([0, 1600], 75, True, True)
+    wait(750, MSEC)
+    drive_train.drive([-300, 2200], 100, False, False)
     wait(2000, MSEC)
-    drive_train.pos = [200, 2000]
     stop_full_intake()
     grabber.set(False)
-    drive_train.drive([250, -200], 100, False, True)
-    print("total time: ", brain.timer.time(), "ms", sep="")
-    # runs -- data
-    # 1 -- low by 1 robot
-    # 2 -- high by .5 robot, went too far
-    # 3 -- perfect
-    # 4 -- close, went too far
-    # 5 -- on target, went too far
-    # 6 -- on target, went too far
-    # 7 -- missed donut dragged first mogo
-    # 8 -- on target
-    # 9 -- low by .7 robot
-    # 10 -- slightly high went too far
-    # 11 -- too far
-    # 12 -- too far
-    # changed the distance here 400 -> 300
-    # 13 -- low
-    # 14 -- fluke error with first donut
-    # 15 -- slightly high short
-    # 16 -- short on second move
-    # 17 -- short on second move
-    # 18 -- far then short, low
-    # 19 -- good, then short
-    # 20 -- quite low, short, low on air
-    wait(100, MSEC)
-    drive_train.drive([250, -700], 75, False, False)
+    drive_train.drive([500, 1900], 100, True, True)
+    drive_train.drive([-200, 0], 100, False, True)
+    drive_train.drive([-200, -1000], 100, False, False)
     wait(400, MSEC)
     grabber.set(True)
+    drive_train.drive([-1000, -1000], 100, True, False)
+    wait(750, MSEC)
+    drive_train.pos = [0, 0]
     spin_full_intake(FORWARD)
-    # drive_train.drive([1000, -1000], 100, True, True)
+    drive_train.drive([400, 0], 100, False, True)
+    drive_train.drive([1200, -100], 100, True, True)
+    drive_train.drive([1200, -1200], 100, True, True)
+    drive_train.drive([400, -1200], 100, True, True)
+    drive_train.drive([0, -1800], 100, True, False)
+    wait(2000, MSEC)
+    drive_train.pos = [0, 0]
+    drive_train.drive([600, 0], 100, False, True)
+    drive_train.drive([0, 0], 100, False, True)
+    grabber.set(False)
+    # drive_train.drive([3000, 200], 100, True, True)
+    print("total time: ", brain.timer.time(), "ms", sep="")
 
 
 def second_prog():
