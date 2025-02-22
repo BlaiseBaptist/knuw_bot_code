@@ -98,10 +98,8 @@ def monitor_temp():
 
 
 def skills():
-    # grabber.set(True)
     programing_skills()
     driver()
-    # second_prog()
 
 
 def driver():
@@ -115,10 +113,6 @@ def driver():
         Left, Right = drive_code(throttle, turn)
         left_group.spin(FORWARD, Left, PERCENT)
         right_group.spin(FORWARD, Right, PERCENT)
-        # if control.buttonY.pressing():
-        #     second_prog()
-        #     control.rumble(".")
-        #     break
 
 
 drive_train = DriveTrain(left_group, right_group)
@@ -173,16 +167,6 @@ def programing_skills():
     grabber.set(False)
     # drive_train.drive([3000, 200], 100, True, True)
     print("total time: ", brain.timer.time(), "ms", sep="")
-
-
-def second_prog():
-    print("starting second prog")
-    sensor.set_heading(180)
-    spin_full_intake(FORWARD)
-    drive_train.drive([0, 1200], 100, True, True)
-    drive_train.drive([1200, 1200], 100, True, True)
-    drive_train.drive([800, 800], 100, True, True)
-    Thread(driver)
 
 
 def monitor_conveyor():
@@ -319,8 +303,7 @@ def main():
     control.buttonUp.pressed(lift_flexes)
     control.buttonDown.pressed(lower_flexes)
     control.buttonB.pressed(lambda: doinker.set(not (doinker.value())))
-    # control.buttonX.pressed(driver)
-    Competition(skills, programing_skills)
+    Competition(driver, auto_right)
     while True:
         avg, max = monitor_temp()
         out = 'avg{:2.0f},max{:2.0f}'.format(avg, max)
